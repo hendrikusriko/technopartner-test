@@ -40,16 +40,38 @@
                             </div>
                         </div>
                         <div class="card-body">
+                                    <label> Filter berdasarkan tanggal :</label> 
+                                    <div class="row mb-4"> 
+                                        <div class="col-lg-5">
+                                            <label>Dari tanggal</label> 
+                                            <div class="controls">
+                                                <input name="start_date" id="start_date" type="date" class="form-control" required>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-lg-5">
+                                            <label>Sampai tanggal</label> 
+                                            <div class="controls">
+                                                <input name="end_date" id="end_date" type="date" class="form-control" required>
+                                            </div>
+                                        </div>
 
+                                        <div class="col-lg-2">
+                                        <br>
+                                        <center>
+                                            <button type="text" id="submitsearch" class="btn btn-primary mt-2">Submit</button>
+                                        </center>
+                                        </div>
+                                    </div>
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th>No</th>
                                             <th>Tipe</th>
                                             <th>Category</th>
                                             <th>Nominal</th>
                                             <th>Deskripsi</th>
+                                            <th>Dibuat pada</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -72,11 +94,15 @@
                 destroy: true,
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('transaction.datatables') }}",
-                columns: [{
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex'
-                    },
+                ajax: {
+                    url: "{{ route('transaction.datatables') }}",
+                    data: function (d) {
+                        d.start_date = $('#start_date').val();
+                        d.end_date = $('#end_date').val();
+                        d.search = $('input[type="search"]').val()
+                    }
+                },
+                columns: [
                     {
                         data: 'type',
                         name: 'type'
@@ -94,12 +120,20 @@
                         name: 'desc'
                     },
                     {
+                        data: 'created_at',
+                        name: 'created_at',
+                    },
+                    {
                         data: 'action',
                         name: 'action',
-                        orderable: true,
-                        searchable: true
+                        orderable: false,
+                        searchable: false
                     },
                 ]
+            });
+
+            $('#submitsearch').click(function(){
+                $('#dataTable').DataTable().draw(true);
             });
         });
         

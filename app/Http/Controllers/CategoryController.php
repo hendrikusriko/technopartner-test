@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Validator;
 class CategoryController extends Controller
 {
     public function getCatByType(Request $request) {
-        //abort_unless(\Gate::allows('category_access'), 401);
-
         if (!$request->type) {
             $html = '<option value="">'.trans('global.pleaseSelect').'</option>';
         } else {

@@ -21,8 +21,8 @@ class TransactionController extends Controller
     public function dataTables(Request $request) 
     {
         if ($request->ajax()) {
-            $data = Transaction::with(['category'])->latest()->whereMonth('created_at', date('m'))
-                    ->whereYear('created_at', date('Y'))->get();
+            $data = Transaction::with(['category'])->latest()
+            ->whereMonth('created_at', date('m'))->whereYear('created_at', date('Y'));
             
             return Datatables::of($data)
                 ->addIndexColumn()
@@ -31,7 +31,21 @@ class TransactionController extends Controller
                                   <a href="' . route('transaction.delete', ['id' => $row->id]) . '" class="delete btn btn-danger btn-sm">Delete</a>';
                     return $actionBtn;
                 })
-
+                ->filter(function ($instance) use ($request) {
+                    if ( !empty($request->get('start_date')) && !empty($request->get('end_date')) ) {
+                            $instance->where(function($w) use($request){
+                                $startDate = date('Y-m-d', strtotime($request->get('start_date')));
+                                $endDate = date('Y-m-d', strtotime($request->get('end_date')));
+                                $w->whereRaw("date(transaction.created_at) >= '" . $startDate . "' AND date(transaction.created_at) <= '" . $endDate . "'");
+                            });
+                   }
+                    if (!empty($request->get('search'))) {
+                         $instance->where(function($w) use($request){
+                            $search = $request->get('search');
+                            $w->orWhere('id', 'LIKE', "%$search%");
+                        });
+                    }
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -39,8 +53,7 @@ class TransactionController extends Controller
 
     public function create()
     {
-        //abort_unless(\Gate::allows('transaction_create'), 401);
-        $cat = Category::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $cat = Category::all()->pluck('name', 'id');
         return view('transaction.create', ['category' => $cat]);
     }
 
@@ -70,7 +83,7 @@ class TransactionController extends Controller
 
     public function edit($id)
     {
-        $cat = Category::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $cat = Category::all()->pluck('name', 'id');
         $transaction = Transaction::find($id);
         return view('transaction.edit', ['category' => $cat, 'transaction' => $transaction]);
     }

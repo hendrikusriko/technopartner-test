@@ -13,7 +13,7 @@ class Transaction extends Model
         'type',
         'category_id',
         'nominal',
-        'desc'
+        'desc',
     ];
     use HasFactory;
 
